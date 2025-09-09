@@ -1,133 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Auth Page</title>
   <style>
     body {
       font-family: "Poppins", sans-serif;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display: flex; justify-content: center; align-items: center;
+      height: 100vh; margin: 0;
       background: linear-gradient(135deg, #667eea, #764ba2);
     }
     .card {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 1.5rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      width: 100%;
-      max-width: 380px;
-      text-align: center;
+      background: #fff; padding: 2rem;
+      border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      width: 100%; max-width: 380px;
     }
-    h2 { margin-bottom: 1rem; color: #333; }
-    .input-group { margin-bottom: 1rem; text-align: left; }
-    label { display: block; margin-bottom: 0.3rem; font-size: 0.9rem; color: #555; }
-    input {
+    h2 { text-align: center; margin-bottom: 1.5rem; color: #333; }
+    .input-group { margin-bottom: 1rem; }
+    .input-group label { display: block; margin-bottom: .3rem; color: #555; }
+    .input-group input {
       width: 100%; padding: 0.7rem 1rem;
-      border-radius: 0.8rem; border: 1px solid #ddd; outline: none;
+      border: 1px solid #ddd; border-radius: 0.8rem; outline: none;
     }
-    input:focus { border-color: #667eea; box-shadow: 0 0 5px rgba(102,126,234,0.5); }
     button {
-      width: 100%; padding: 0.8rem; margin-top: 0.5rem;
-      border: none; border-radius: 0.8rem;
-      background: #667eea; color: white; font-weight: bold; cursor: pointer;
+      width: 100%; padding: 0.8rem; border: none;
+      border-radius: 0.30rem; margin-top: .5rem;
+      font-weight: bold; cursor: pointer;
     }
-    button:hover { background: #5563c1; }
-    .toggle {
-      margin-top: 1rem; font-size: 0.9rem; color: #555;
-    }
-    .toggle a { color: #667eea; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: #667eea; color: white; }
+    .btn-primary:hover { background: #5563c1; }
+    .btn-google { background: #db4437; color: white; }
+    .btn-facebook { background: #1877f2; color: white; }
+    .footer-text { text-align: center; margin-top: 1rem; font-size: .9rem; }
+    .footer-text a { color: #667eea; font-weight: 600; cursor: pointer; text-decoration: none; }
+    .footer-text a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2 id="formTitle">Login</h2>
+    <h2 id="form-title">Login</h2>
     <form id="authForm">
       <div class="input-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="Enter your email" required>
+        <label>Email</label>
+        <input type="email" id="email" required />
       </div>
       <div class="input-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Enter your password" required>
+        <label>Password</label>
+        <input type="password" id="password" required />
       </div>
-      <div class="input-group" id="confirmGroup" style="display:none;">
-        <label for="confirm">Confirm Password</label>
-        <input type="password" id="confirm" placeholder="Confirm password">
-      </div>
-      <button type="submit" id="submitBtn">Login</button>
+      <button type="submit" id="submitBtn" class="btn-primary">Login</button>
     </form>
-    <p class="toggle">
-      <span id="toggleText">Don't have an account?</span>
-      <a id="toggleLink">Register</a>
-    </p>
+    <p class="footer-text">Don't have an account? <a id="toggleForm">Register</a></p>
+    <hr />
+    <button id="googleBtn" class="btn-google">Login with Google</button>
+    <button id="facebookBtn" class="btn-facebook">Login with Facebook</button>
   </div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    // Import Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
-      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
 
-    // ✅ Ganti dengan Firebase Config kamu
+  <script>
+    // 🔹 Ganti dengan Firebase config kamu
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyCP88iQpWKrudwkZpbWPQAERome4W8RnvQ",
+      authDomain: "web-app-e586a.firebaseapp.com",
+      projectId: "web-app-e586a",
+      storageBucket: "web-app-e586a.firebasestorage.app",
+      messagingSenderId: "979871478072",
+      appId: "1:979871478072:web:010a1f0b44bc4d977011cd",
+      measurementId: "G-C2TH8LGXFZ"
     };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-    // Init Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    const form = document.getElementById("authForm");
+    const formTitle = document.getElementById("form-title");
+    const submitBtn = document.getElementById("submitBtn");
+    const toggleForm = document.getElementById("toggleForm");
 
     let isLogin = true;
-    const formTitle = document.getElementById("formTitle");
-    const confirmGroup = document.getElementById("confirmGroup");
-    const submitBtn = document.getElementById("submitBtn");
-    const toggleText = document.getElementById("toggleText");
-    const toggleLink = document.getElementById("toggleLink");
-    const form = document.getElementById("authForm");
 
-    // Toggle Login/Register
-    toggleLink.addEventListener("click", () => {
+    toggleForm.addEventListener("click", () => {
       isLogin = !isLogin;
       formTitle.textContent = isLogin ? "Login" : "Register";
-      confirmGroup.style.display = isLogin ? "none" : "block";
-      submitBtn.textContent = isLogin ? "Login" : "Create Account";
-      toggleText.textContent = isLogin ? "Don't have an account?" : "Already have an account?";
-      toggleLink.textContent = isLogin ? "Register" : "Login";
+      submitBtn.textContent = isLogin ? "Login" : "Register";
+      toggleForm.textContent = isLogin ? "Register" : "Login";
     });
 
-    // Form submit
+    // Email & Password Auth
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-      const confirm = document.getElementById("confirm").value;
-
       try {
         if (isLogin) {
-          // Login
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
-          alert("✅ Login successful! Welcome " + userCredential.user.email);
+          await auth.signInWithEmailAndPassword(email, password);
         } else {
-          // Register
-          if (password !== confirm) {
-            alert("❌ Passwords do not match");
-            return;
-          }
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          alert("✅ Account created for " + userCredential.user.email);
+          await auth.createUserWithEmailAndPassword(email, password);
         }
-      } catch (error) {
-        alert("❌ " + error.message);
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    });
+
+    // Google Login
+    document.getElementById("googleBtn").addEventListener("click", async () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        await auth.signInWithPopup(provider);
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    });
+
+    // Facebook Login
+    document.getElementById("facebookBtn").addEventListener("click", async () => {
+      const provider = new firebase.auth.FacebookAuthProvider();
+      try {
+        await auth.signInWithPopup(provider);
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    });
+
+    // Cek login status
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        window.location.href = "dashboard.html";
       }
     });
   </script>
