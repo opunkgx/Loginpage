@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      display: flex; justify-content: center; align-items: center;
+      height: 100vh; margin: 0;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    .card {
+      background: #fff; padding: 2rem;
+      border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      width: 100%; max-width: 380px;
+    }
+    h2 { text-align: center; margin-bottom: 1.5rem; color: #333; }
+    .input-group { margin-bottom: 1rem; }
+    .input-group label { display: block; margin-bottom: .3rem; color: #555; }
+    .input-group input {
+      width: 100%; padding: 0.7rem 1rem;
+      border: 1px solid #ddd; border-radius: 0.8rem; outline: none;
+    }
+    button {
+      width: 100%; padding: 0.8rem; border: none;
+      border-radius: 0.8rem; margin-top: .5rem;
+      font-weight: bold; cursor: pointer;
+    }
+    .btn-primary { background: #667eea; color: white; }
+    .btn-google { background: #db4437; color: white; }
+    .btn-facebook { background: #1877f2; color: white; }
+    .footer-text { text-align: center; margin-top: 1rem; font-size: .9rem; }
+    .footer-text a { color: #667eea; font-weight: 600; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" required />
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" required />
+      </div>
+      <button type="submit" class="btn-primary">Login</button>
+    </form>
+    <hr />
+    <button id="googleBtn" class="btn-google">Login with Google</button>
+    <button id="facebookBtn" class="btn-facebook">Login with Facebook</button>
+    <p class="footer-text">Don't have an account? <a href="register.html">Register</a></p>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Email login
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    });
+
+    // Google login
+    document.getElementById("googleBtn").addEventListener("click", async () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        await auth.signInWithPopup(provider);
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    });
+
+    // Facebook login
+    document.getElementById("facebookBtn").addEventListener("click", async () => {
+      const provider = new firebase.auth.FacebookAuthProvider();
+      try {
+        await auth.signInWithPopup(provider);
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
