@@ -1,16 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Dashboard</title>
   <style>
-    body { font-family: "Poppins", sans-serif; text-align: center; padding: 50px; }
-    button {
-      padding: 10px 20px; background: #667eea; border: none;
-      border-radius: 10px; color: white; font-weight: bold; cursor: pointer;
-    }
-    button:hover { background: #5563c1; }
+    body { font-family:"Poppins",sans-serif; text-align:center; padding:50px; }
+    button { padding:10px 20px; background:#667eea; border:none; border-radius:10px; color:white; font-weight:bold; cursor:pointer; }
+    button:hover { background:#5563c1; }
   </style>
 </head>
 <body>
@@ -33,12 +30,11 @@
     const auth = firebase.auth();
 
     const userInfo = document.getElementById("userInfo");
-
     auth.onAuthStateChanged((user) => {
       if (!user) {
-        window.location.href = "index.html";
+        window.location.href = "login.html";
       } else {
-        userInfo.textContent = `Logged in as: ${user.email || user.displayName}`;
+        userInfo.textContent = `Logged in as: ${user.displayName || user.email}`;
       }
     });
 
