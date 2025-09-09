@@ -6,59 +6,72 @@
   <title>Login</title>
   <style>
     body {
-      font-family: "Poppins", sans-serif;
-      display: flex; justify-content: center; align-items: center;
-      height: 100vh; margin: 0;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-    .card {
-      background: #fff; padding: 2rem;
-      border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      width: 100%; max-width: 380px;
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      width: 320px;
+      text-align: center;
     }
-    h2 { text-align: center; margin-bottom: 1.5rem; color: #333; }
-    .input-group { margin-bottom: 1rem; }
-    .input-group label { display: block; margin-bottom: .3rem; color: #555; }
-    .input-group input {
-      width: 100%; padding: 0.7rem 1rem;
-      border: 1px solid #ddd; border-radius: 0.8rem; outline: none;
+    h2 { margin-bottom: 20px; }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
     }
     button {
-      width: 100%; padding: 0.8rem; border: none;
-      border-radius: 0.8rem; margin-top: .5rem;
-      font-weight: bold; cursor: pointer;
+      width: 100%;
+      padding: 10px;
+      background: #2575fc;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
     }
-    .btn-primary { background: #667eea; color: white; }
-    .btn-google { background: #db4437; color: white; }
-    .btn-facebook { background: #1877f2; color: white; }
-    .footer-text { text-align: center; margin-top: 1rem; font-size: .9rem; }
-    .footer-text a { color: #667eea; font-weight: 600; text-decoration: none; }
+    button:hover { background: #1a5fd0; }
+    .social {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .social button {
+      background: #eee;
+      color: #000;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
+  <div class="container">
     <h2>Login</h2>
-    <form id="loginForm">
-      <div class="input-group">
-        <label>Email</label>
-        <input type="email" id="loginEmail" required />
-      </div>
-      <div class="input-group">
-        <label>Password</label>
-        <input type="password" id="loginPassword" required />
-      </div>
-      <button type="submit" class="btn-primary">Login</button>
-    </form>
-    <hr />
-    <button id="googleBtn" class="btn-google">Login with Google</button>
-    <button id="facebookBtn" class="btn-facebook">Login with Facebook</button>
-    <p class="footer-text">Don't have an account? <a href="register.html">Register</a></p>
+    <input type="email" id="email" placeholder="Email"/>
+    <input type="password" id="password" placeholder="Password"/>
+    <button id="loginBtn">Login</button>
+    <p>Belum punya akun? <a href="register.html">Register</a></p>
+    <div class="social">
+      <button id="googleBtn">Login with Google</button>
+      <button id="facebookBtn">Login with Facebook</button>
+    </div>
   </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-  <script>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } 
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCP88iQpWKrudwkZpbWPQAERome4W8RnvQ",
       authDomain: "web-app-e586a.firebaseapp.com",
@@ -68,16 +81,17 @@
       appId: "1:979871478072:web:010a1f0b44bc4d977011cd",
       measurementId: "G-C2TH8LGXFZ"
     };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
     // Email login
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
       try {
-        await auth.signInWithEmailAndPassword(email, password);
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("✅ Login berhasil");
         window.location.href = "dashboard.html";
       } catch (err) {
         alert("❌ " + err.message);
@@ -86,9 +100,10 @@
 
     // Google login
     document.getElementById("googleBtn").addEventListener("click", async () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
+      const provider = new GoogleAuthProvider();
       try {
-        await auth.signInWithPopup(provider);
+        await signInWithPopup(auth, provider);
+        alert("✅ Login Google berhasil");
         window.location.href = "dashboard.html";
       } catch (err) {
         alert("❌ " + err.message);
@@ -97,9 +112,10 @@
 
     // Facebook login
     document.getElementById("facebookBtn").addEventListener("click", async () => {
-      const provider = new firebase.auth.FacebookAuthProvider();
+      const provider = new FacebookAuthProvider();
       try {
-        await auth.signInWithPopup(provider);
+        await signInWithPopup(auth, provider);
+        alert("✅ Login Facebook berhasil");
         window.location.href = "dashboard.html";
       } catch (err) {
         alert("❌ " + err.message);
