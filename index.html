@@ -1,39 +1,126 @@
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-<script>
-  // Firebase Config
-  const firebaseConfig = {
-    apiKey: "AIzaSyCP88iQpWKrudwkZpbWPQAERome4W8RnvQ",
-    authDomain: "web-app-e586a.firebaseapp.com",
-    projectId: "web-app-e586a",
-    storageBucket: "web-app-e586a.firebasestorage.app",
-    messagingSenderId: "979871478072",
-    appId: "1:979871478072:web:010a1f0b44bc4d977011cd",
-    measurementId: "G-C2TH8LGXFZ"
-  };
-  const app = firebase.initializeApp(firebaseConfig);
-  const auth = firebase.getAuth(app);
-
-  // Google login
-  document.getElementById("googleBtn").addEventListener("click", async () => {
-    const provider = new firebase.GoogleAuthProvider();
-    try {
-      await firebase.signInWithPopup(auth, provider);
-      window.location.href = "dashboard.html";
-    } catch (err) {
-      alert("❌ " + err.message);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-  });
-
-  // Facebook login
-  document.getElementById("facebookBtn").addEventListener("click", async () => {
-    const provider = new firebase.FacebookAuthProvider();
-    try {
-      await firebase.signInWithPopup(auth, provider);
-      window.location.href = "dashboard.html";
-    } catch (err) {
-      alert("❌ " + err.message);
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      width: 320px;
+      text-align: center;
     }
-  });
-</script>
+    h2 { margin-bottom: 20px; }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #2575fc;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover { background: #1a5fd0; }
+    .social {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .social button {
+      background: #eee;
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Login</h2>
+    <input type="email" id="email" placeholder="Email"/>
+    <input type="password" id="password" placeholder="Password"/>
+    <button id="loginBtn">Login</button>
+    <p>Belum punya akun? <a href="register.html">Register</a></p>
+    <div class="social">
+      <button id="googleBtn">Login with Google</button>
+      <button id="facebookBtn">Login with Facebook</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } 
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCP88iQpWKrudwkZpbWPQAERome4W8RnvQ",
+      authDomain: "web-app-e586a.firebaseapp.com",
+      projectId: "web-app-e586a",
+      storageBucket: "web-app-e586a.firebasestorage.app",
+      messagingSenderId: "979871478072",
+      appId: "1:979871478072:web:010a1f0b44bc4d977011cd",
+      measurementId: "G-C2TH8LGXFZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Email login
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("✅ Login berhasil");
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    });
+
+    // Google login
+    document.getElementById("googleBtn").addEventListener("click", async () => {
+      const provider = new GoogleAuthProvider();
+      try {
+        await signInWithPopup(auth, provider);
+        alert("✅ Login Google berhasil");
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    });
+
+    // Facebook login
+    document.getElementById("facebookBtn").addEventListener("click", async () => {
+      const provider = new FacebookAuthProvider();
+      try {
+        await signInWithPopup(auth, provider);
+        alert("✅ Login Facebook berhasil");
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
