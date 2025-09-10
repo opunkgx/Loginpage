@@ -1,93 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Register</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Modern UI</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #ff416c, #ff4b2b);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+    /* 🔹 Biar dropdown sama tinggi & font dengan input */
+    #countryCode {
+      font-size: 14px;
+      padding: 0.5rem;
+      height: 42px;
     }
-    .container {
-      background: #fff;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      width: 360px;
-      text-align: center;
+    #phone {
+      font-size: 14px;
+      height: 42px;
     }
-    h2 { margin-bottom: 15px; }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-    }
-    .phone-group {
-      display: flex;
-      gap: 5px;
-    }
-    .phone-group select { width: 40%; }
-    .phone-group input { width: 60%; }
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #ff4b2b;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover { background: #e13a1c; }
-    #otpSection { display: none; margin-top: 15px; }
   </style>
 </head>
-<body>
-  <div class="container">
-    <h2>Register</h2>
-    <input type="email" id="regEmail" placeholder="Email" required />
-    <input type="password" id="regPassword" placeholder="Password" required />
-    <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+<body class="bg-gray-100 flex items-center justify-center h-screen">
 
-    <div class="phone-group">
-      <select id="countryCode">
-        <option value="+60">🇲🇾 +60</option>
-        <option value="+62">🇮🇩 +62</option>
-        <option value="+91">🇮🇳 +91</option>
-        <option value="+880">🇧🇩 +880</option>
-      </select>
-      <input type="tel" id="phoneNumber" placeholder="Nomor HP" required />
-    </div>
+  <div class="bg-white p-8 rounded-2xl shadow-lg w-96">
+    <h2 class="text-2xl font-bold text-center mb-6">Create Account</h2>
+    <form id="registerForm" class="space-y-4">
+      <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded-lg" required>
+      <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded-lg" required>
+      <input type="password" id="confirmPassword" placeholder="Confirm Password" class="w-full p-2 border rounded-lg" required>
 
-    <div id="recaptcha-container"></div>
-    <button id="sendOtpBtn">Kirim OTP</button>
+      <!-- 🔹 Dropdown kode negara + input nomor HP -->
+      <div class="flex space-x-2">
+        <select id="countryCode" class="border rounded-lg w-32">
+          <option value="+62">🇮🇩 +62 (ID)</option>
+          <option value="+60">🇲🇾 +60 (MY)</option>
+          <option value="+91">🇮🇳 +91 (IN)</option>
+          <option value="+880">🇧🇩 +880 (BD)</option>
+        </select>
+        <input type="text" id="phone" placeholder="Phone Number" class="flex-1 p-2 border rounded-lg">
+      </div>
 
-    <div id="otpSection">
-      <input type="text" id="otpCode" placeholder="Masukkan OTP" />
-      <button id="verifyOtpBtn">Verifikasi & Register</button>
-    </div>
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">Register</button>
+    </form>
 
-    <p>Sudah punya akun? <a href="login.html">Login</a></p>
+    <p class="text-sm text-center mt-4">Already have an account? 
+      <a href="login.html" class="text-blue-600 hover:underline">Login</a>
+    </p>
   </div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { 
-      getAuth, 
-      createUserWithEmailAndPassword, 
-      RecaptchaVerifier, 
-      signInWithPhoneNumber 
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
+  <script>
+    // 🔹 Konfigurasi Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCP88iQpWKrudwkZpbWPQAERome4W8RnvQ",
       authDomain: "web-app-e586a.firebaseapp.com",
@@ -98,51 +61,43 @@
       measurementId: "G-C2TH8LGXFZ"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    let confirmationResult;
+    // 🔹 Inisialisasi Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    // Setup reCAPTCHA
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: "invisible"
-    });
-
-    // Kirim OTP
-    document.getElementById("sendOtpBtn").addEventListener("click", async () => {
-      const email = document.getElementById("regEmail").value;
-      const password = document.getElementById("regPassword").value;
+    // 🔹 Register user
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
       const confirmPassword = document.getElementById("confirmPassword").value;
-      const phone = document.getElementById("countryCode").value + document.getElementById("phoneNumber").value;
+      const countryCode = document.getElementById("countryCode").value;
+      const phone = countryCode + document.getElementById("phone").value;
 
       if (password !== confirmPassword) {
-        alert("❌ Password tidak sama!");
+        alert("Passwords do not match!");
         return;
       }
 
       try {
-        confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
-        alert("✅ OTP terkirim ke " + phone);
-        document.getElementById("otpSection").style.display = "block";
-      } catch (err) {
-        alert("❌ " + err.message);
-      }
-    });
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
 
-    // Verifikasi OTP
-    document.getElementById("verifyOtpBtn").addEventListener("click", async () => {
-      const otp = document.getElementById("otpCode").value;
-      const email = document.getElementById("regEmail").value;
-      const password = document.getElementById("regPassword").value;
+        // Simpan no HP ke Firestore
+        await db.collection("users").doc(user.uid).set({
+          email: email,
+          phone: phone
+        });
 
-      try {
-        await confirmationResult.confirm(otp);
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("✅ Registrasi berhasil & Nomor HP terverifikasi");
-        window.location.href = "login.html";
-      } catch (err) {
-        alert("❌ " + err.message);
+        // Kirim OTP via email (email verification bawaan Firebase)
+        await user.sendEmailVerification();
+        alert("Registration successful! Please check your email for OTP verification.");
+      } catch (error) {
+        alert(error.message);
       }
     });
   </script>
+
 </body>
 </html>
