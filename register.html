@@ -3,25 +3,28 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Register - Fixed</title>
+  <title>Register - SweetAlert</title>
 
-  <!-- Tailwind (optional) -->
+  <!-- Tailwind -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-  <!-- Firebase (compat builds so old-style API like firebase.auth() works) -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <style>
-    body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:#f3f4f6; }
-    .card { background: #fff; padding: 28px; width: 380px; border-radius: 14px; box-shadow: 0 10px 30px rgba(2,6,23,0.08); margin:80px auto; }
+    body { font-family: Inter, system-ui, sans-serif; background:#f3f4f6; }
+    .card { background:#fff; padding:28px; width:380px; border-radius:14px; box-shadow:0 10px 30px rgba(2,6,23,0.08); margin:80px auto; }
     .field { width:100%; padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:14px; }
     .row { display:flex; gap:8px; }
-    .toggle-password { position: absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; user-select:none; }
+    .toggle-password { position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; }
     .pw-wrap { position:relative; }
     #passwordProgress { height:6px; border-radius:6px; background:#e5e7eb; overflow:hidden; margin-top:6px; }
-    #passwordProgressFill { width:0%; height:100%; transition: width 240ms ease, background 240ms ease; }
+    #passwordProgressFill { width:0%; height:100%; transition:width .24s ease, background .24s ease; }
     button { border-radius:10px; padding:10px 12px; font-weight:600; }
     button:disabled { background:#9ca3af !important; cursor:not-allowed; }
     .small { font-size:12px; color:#6b7280; }
@@ -36,7 +39,6 @@
     <form id="registerForm" novalidate>
       <div class="mb-3">
         <input id="email" class="field" type="email" placeholder="Email" required />
-        <p id="emailHint" class="small hidden">Please enter a valid email.</p>
       </div>
 
       <div class="mb-3">
@@ -76,7 +78,7 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-  // ---- Firebase config (use your config) ----
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyCP88iQpWKrudwkZpbWPQAERome4W8RnvQ",
     authDomain: "web-app-e586a.firebaseapp.com",
@@ -90,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function() {
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  // ---- DOM elements ----
+  // DOM
   const emailEl = document.getElementById("email");
   const pwdEl = document.getElementById("password");
   const confirmEl = document.getElementById("confirmPassword");
@@ -101,23 +103,16 @@ document.addEventListener("DOMContentLoaded", function() {
   const togglePwd1 = document.getElementById("togglePwd1");
   const togglePwd2 = document.getElementById("togglePwd2");
 
-  // ---- helpers ----
-  function isEmailValid() {
-    return emailEl.checkValidity(); // uses browser email validation
-  }
-  function isPasswordValid() {
-    return pwdEl.value.length >= 8;
-  }
-  function passwordsMatch() {
-    return pwdEl.value === confirmEl.value && confirmEl.value.length > 0;
-  }
+  // helpers
+  function isEmailValid() { return emailEl.checkValidity(); }
+  function isPasswordValid() { return pwdEl.value.length >= 8; }
+  function passwordsMatch() { return pwdEl.value === confirmEl.value && confirmEl.value.length > 0; }
 
   function updateRegisterButton() {
     const ok = isEmailValid() && isPasswordValid() && passwordsMatch();
     registerBtn.disabled = !ok;
   }
 
-  // ---- password strength (0..4) ----
   function evaluateStrength(pw) {
     let s=0;
     if (pw.length >= 8) s++;
@@ -156,7 +151,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // ---- password match UI ----
   function updatePasswordMatchUI() {
     if (!confirmEl.value) {
       passwordError.classList.add("hidden");
@@ -167,45 +161,24 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // ---- event listeners ----
-  emailEl.addEventListener("input", () => {
-    updateRegisterButton();
+  // event listeners
+  emailEl.addEventListener("input", updateRegisterButton);
+  pwdEl.addEventListener("input", () => { updatePasswordUI(); updatePasswordMatchUI(); updateRegisterButton(); });
+  confirmEl.addEventListener("input", () => { updatePasswordMatchUI(); updateRegisterButton(); });
+
+  togglePwd1.addEventListener("click", () => {
+    pwdEl.type = pwdEl.type === "password" ? "text" : "password";
+  });
+  togglePwd2.addEventListener("click", () => {
+    confirmEl.type = confirmEl.type === "password" ? "text" : "password";
   });
 
-  pwdEl.addEventListener("input", () => {
-    updatePasswordUI();
-    updatePasswordMatchUI();
-    updateRegisterButton();
-  });
-
-  confirmEl.addEventListener("input", () => {
-    updatePasswordMatchUI();
-    updateRegisterButton();
-  });
-
-  // phone/country not required => no effect on button
-  document.getElementById("phone").addEventListener("input", () => {
-    /* optional phone validation could go here */
-  });
-
-  // toggle password visibility
-  function toggle(idEl) {
-    idEl.type = idEl.type === "password" ? "text" : "password";
-  }
-  togglePwd1.addEventListener("click", () => toggle(pwdEl));
-  togglePwd2.addEventListener("click", () => toggle(confirmEl));
-
-  // prevent form default submission while testing
+  // submit
   const form = document.getElementById("registerForm");
   form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
+    if (!isEmailValid() || !isPasswordValid() || !passwordsMatch()) return;
 
-    // final validation check
-    if (!isEmailValid()) { alert("Please enter a valid email."); return; }
-    if (!isPasswordValid()) { alert("Password must be at least 8 characters."); return; }
-    if (!passwordsMatch()) { alert("Passwords do not match."); return; }
-
-    // disable button while registering
     registerBtn.disabled = true;
     registerBtn.textContent = "Registering...";
 
@@ -218,30 +191,33 @@ document.addEventListener("DOMContentLoaded", function() {
     try {
       const userCredential = await auth.createUserWithEmailAndPassword(email, password);
       const user = userCredential.user;
-
-      // save phone (optional) to Firestore
       if (fullPhone) {
-        await db.collection("users").doc(user.uid).set({
-          email: email,
-          phone: fullPhone
-        });
+        await db.collection("users").doc(user.uid).set({ email, phone: fullPhone });
       } else {
         await db.collection("users").doc(user.uid).set({ email });
       }
+      user.sendEmailVerification();
 
-      // send email verification (Firebase default link)
-      await user.sendEmailVerification();
-      alert("Registration successful! Please check your email for the verification link.");
-      // optionally redirect to login
-      window.location.href = "login.html";
+      Swal.fire({
+        icon: 'success',
+        title: 'Registrasi Berhasil',
+        text: 'Silahkan login menggunakan akun anda',
+        confirmButtonText: 'OK'
+      }).then(() => {
+        window.location.href = "login.html";
+      });
+
     } catch (err) {
-      alert(err.message || "Registration error");
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Registrasi',
+        text: err.message || "Terjadi error saat registrasi"
+      });
       registerBtn.disabled = false;
       registerBtn.textContent = "Register";
     }
   });
 
-  // initialize UI (in case fields are pre-filled)
   updatePasswordUI();
   updatePasswordMatchUI();
   updateRegisterButton();
