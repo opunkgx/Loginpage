@@ -1,120 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register - Modern UI</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Register - Fixed</title>
+
+  <!-- Tailwind (optional) -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- Firebase (compat builds so old-style API like firebase.auth() works) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
   <style>
-    #countryCode {
-      font-size: 14px;
-      padding: 0.5rem;
-      height: 42px;
-    }
-    #phone {
-      font-size: 14px;
-      height: 42px;
-    }
-    .disabled-btn {
-      background-color: #9ca3af !important; /* abu-abu */
-      cursor: not-allowed;
-    }
+    body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:#f3f4f6; }
+    .card { background: #fff; padding: 28px; width: 380px; border-radius: 14px; box-shadow: 0 10px 30px rgba(2,6,23,0.08); margin:80px auto; }
+    .field { width:100%; padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:14px; }
+    .row { display:flex; gap:8px; }
+    .toggle-password { position: absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; user-select:none; }
+    .pw-wrap { position:relative; }
+    #passwordProgress { height:6px; border-radius:6px; background:#e5e7eb; overflow:hidden; margin-top:6px; }
+    #passwordProgressFill { width:0%; height:100%; transition: width 240ms ease, background 240ms ease; }
+    button { border-radius:10px; padding:10px 12px; font-weight:600; }
+    button:disabled { background:#9ca3af !important; cursor:not-allowed; }
+    .small { font-size:12px; color:#6b7280; }
+    .error { color:#ef4444; font-size:13px; margin-top:6px; }
   </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+<body>
 
-  <div class="bg-white p-8 rounded-2xl shadow-lg w-96">
-    <h2 class="text-2xl font-bold text-center mb-6">Create Account</h2>
-    <form id="registerForm" class="space-y-4">
-      <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded-lg" required>
-      <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded-lg" required>
-      <input type="password" id="confirmPassword" placeholder="Confirm Password" class="w-full p-2 border rounded-lg" required>
+  <div class="card">
+    <h2 class="text-xl font-bold text-center mb-4">Create Account</h2>
 
-      <!-- Dropdown kode negara + input nomor HP -->
-      <div class="flex space-x-2">
-        <select id="countryCode" class="border rounded-lg w-32">
-          <option value="+62">🇮🇩 +62 (ID)</option>
-          <option value="+60">🇲🇾 +60 (MY)</option>
-          <option value="+91">🇮🇳 +91 (IN)</option>
-          <option value="+880">🇧🇩 +880 (BD)</option>
-        </select>
-        <input type="text" id="phone" placeholder="Phone Number" class="flex-1 p-2 border rounded-lg">
+    <form id="registerForm" novalidate>
+      <div class="mb-3">
+        <input id="email" class="field" type="email" placeholder="Email" required />
+        <p id="emailHint" class="small hidden">Please enter a valid email.</p>
       </div>
 
-      <button id="registerBtn" type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled-btn" disabled>
-        Register
-      </button>
+      <div class="mb-3">
+        <div class="pw-wrap">
+          <input id="password" class="field" type="password" placeholder="Password (min 8 characters)" minlength="8" required />
+          <span class="toggle-password" id="togglePwd1">👁</span>
+        </div>
+        <div id="passwordProgress"><div id="passwordProgressFill"></div></div>
+        <p id="passwordStrength" class="small mt-1"></p>
+      </div>
+
+      <div class="mb-3">
+        <div class="pw-wrap">
+          <input id="confirmPassword" class="field" type="password" placeholder="Confirm Password" required />
+          <span class="toggle-password" id="togglePwd2">👁</span>
+        </div>
+        <p id="passwordError" class="error hidden">Passwords do not match.</p>
+      </div>
+
+      <div class="mb-3 row">
+        <select id="countryCode" class="field" style="width:120px;">
+          <option value="+62">🇮🇩 +62</option>
+          <option value="+60">🇲🇾 +60</option>
+          <option value="+91">🇮🇳 +91</option>
+          <option value="+880">🇧🇩 +880</option>
+        </select>
+        <input id="phone" class="field" type="text" placeholder="Phone Number (optional)" />
+      </div>
+
+      <div class="mb-3">
+        <button id="registerBtn" type="submit" class="w-full bg-blue-600 text-white" disabled>Register</button>
+      </div>
     </form>
 
-    <p class="text-sm text-center mt-4">Already have an account? 
-      <a href="login.html" class="text-blue-600 hover:underline">Login</a>
-    </p>
+    <p class="small text-center">Already have an account? <a href="login.html" style="color:#2563eb">Login</a></p>
   </div>
 
-  <script>
-    // 🔹 Konfigurasi Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyCP88iQpWKrudwkZpbWPQAERome4W8RnvQ",
-      authDomain: "web-app-e586a.firebaseapp.com",
-      projectId: "web-app-e586a",
-      storageBucket: "web-app-e586a.appspot.com", // sudah diperbaiki
-      messagingSenderId: "979871478072",
-      appId: "1:979871478072:web:010a1f0b44bc4d977011cd",
-      measurementId: "G-C2TH8LGXFZ"
-    };
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // ---- Firebase config (use your config) ----
+  const firebaseConfig = {
+    apiKey: "AIzaSyCP88iQpWKrudwkZpbWPQAERome4W8RnvQ",
+    authDomain: "web-app-e586a.firebaseapp.com",
+    projectId: "web-app-e586a",
+    storageBucket: "web-app-e586a.appspot.com",
+    messagingSenderId: "979871478072",
+    appId: "1:979871478072:web:010a1f0b44bc4d977011cd",
+    measurementId: "G-C2TH8LGXFZ"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-    // 🔹 Inisialisasi Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  // ---- DOM elements ----
+  const emailEl = document.getElementById("email");
+  const pwdEl = document.getElementById("password");
+  const confirmEl = document.getElementById("confirmPassword");
+  const registerBtn = document.getElementById("registerBtn");
+  const passwordError = document.getElementById("passwordError");
+  const passwordStrength = document.getElementById("passwordStrength");
+  const passwordProgressFill = document.getElementById("passwordProgressFill");
+  const togglePwd1 = document.getElementById("togglePwd1");
+  const togglePwd2 = document.getElementById("togglePwd2");
 
-    const passwordInput = document.getElementById("password");
-    const confirmPasswordInput = document.getElementById("confirmPassword");
-    const registerBtn = document.getElementById("registerBtn");
+  // ---- helpers ----
+  function isEmailValid() {
+    return emailEl.checkValidity(); // uses browser email validation
+  }
+  function isPasswordValid() {
+    return pwdEl.value.length >= 8;
+  }
+  function passwordsMatch() {
+    return pwdEl.value === confirmEl.value && confirmEl.value.length > 0;
+  }
 
-    // 🔹 Cek password & confirm password realtime
-    function checkPasswords() {
-      if (passwordInput.value && confirmPasswordInput.value && passwordInput.value === confirmPasswordInput.value) {
-        registerBtn.disabled = false;
-        registerBtn.classList.remove("disabled-btn");
-      } else {
-        registerBtn.disabled = true;
-        registerBtn.classList.add("disabled-btn");
-      }
+  function updateRegisterButton() {
+    const ok = isEmailValid() && isPasswordValid() && passwordsMatch();
+    registerBtn.disabled = !ok;
+  }
+
+  // ---- password strength (0..4) ----
+  function evaluateStrength(pw) {
+    let s=0;
+    if (pw.length >= 8) s++;
+    if (/[A-Z]/.test(pw)) s++;
+    if (/[0-9]/.test(pw)) s++;
+    if (/[^A-Za-z0-9]/.test(pw)) s++;
+    return s;
+  }
+  function updatePasswordUI() {
+    const pw = pwdEl.value;
+    const s = evaluateStrength(pw);
+    if (!pw) {
+      passwordStrength.textContent = "";
+      passwordProgressFill.style.width = "0%";
+      passwordProgressFill.style.background = "#9ca3af";
+    } else if (s <= 1) {
+      passwordStrength.textContent = "Weak password";
+      passwordStrength.style.color = "#ef4444";
+      passwordProgressFill.style.width = "25%";
+      passwordProgressFill.style.background = "#ef4444";
+    } else if (s === 2) {
+      passwordStrength.textContent = "Medium password";
+      passwordStrength.style.color = "#f59e0b";
+      passwordProgressFill.style.width = "50%";
+      passwordProgressFill.style.background = "#f59e0b";
+    } else if (s === 3) {
+      passwordStrength.textContent = "Good password";
+      passwordStrength.style.color = "#3b82f6";
+      passwordProgressFill.style.width = "75%";
+      passwordProgressFill.style.background = "#3b82f6";
+    } else {
+      passwordStrength.textContent = "Strong password";
+      passwordStrength.style.color = "#10b981";
+      passwordProgressFill.style.width = "100%";
+      passwordProgressFill.style.background = "#10b981";
     }
+  }
 
-    passwordInput.addEventListener("input", checkPasswords);
-    confirmPasswordInput.addEventListener("input", checkPasswords);
+  // ---- password match UI ----
+  function updatePasswordMatchUI() {
+    if (!confirmEl.value) {
+      passwordError.classList.add("hidden");
+    } else if (pwdEl.value !== confirmEl.value) {
+      passwordError.classList.remove("hidden");
+    } else {
+      passwordError.classList.add("hidden");
+    }
+  }
 
-    // 🔹 Register user
-    document.getElementById("registerForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = passwordInput.value;
-      const countryCode = document.getElementById("countryCode").value;
-      const phone = countryCode + document.getElementById("phone").value;
+  // ---- event listeners ----
+  emailEl.addEventListener("input", () => {
+    updateRegisterButton();
+  });
 
-      try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+  pwdEl.addEventListener("input", () => {
+    updatePasswordUI();
+    updatePasswordMatchUI();
+    updateRegisterButton();
+  });
 
-        // Simpan no HP ke Firestore
+  confirmEl.addEventListener("input", () => {
+    updatePasswordMatchUI();
+    updateRegisterButton();
+  });
+
+  // phone/country not required => no effect on button
+  document.getElementById("phone").addEventListener("input", () => {
+    /* optional phone validation could go here */
+  });
+
+  // toggle password visibility
+  function toggle(idEl) {
+    idEl.type = idEl.type === "password" ? "text" : "password";
+  }
+  togglePwd1.addEventListener("click", () => toggle(pwdEl));
+  togglePwd2.addEventListener("click", () => toggle(confirmEl));
+
+  // prevent form default submission while testing
+  const form = document.getElementById("registerForm");
+  form.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+
+    // final validation check
+    if (!isEmailValid()) { alert("Please enter a valid email."); return; }
+    if (!isPasswordValid()) { alert("Password must be at least 8 characters."); return; }
+    if (!passwordsMatch()) { alert("Passwords do not match."); return; }
+
+    // disable button while registering
+    registerBtn.disabled = true;
+    registerBtn.textContent = "Registering...";
+
+    const email = emailEl.value.trim();
+    const password = pwdEl.value;
+    const countryCode = document.getElementById("countryCode").value;
+    const phone = (document.getElementById("phone").value || "").trim();
+    const fullPhone = phone ? (countryCode + phone) : "";
+
+    try {
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const user = userCredential.user;
+
+      // save phone (optional) to Firestore
+      if (fullPhone) {
         await db.collection("users").doc(user.uid).set({
           email: email,
-          phone: phone
+          phone: fullPhone
         });
-
-        // Kirim OTP via email (email verification)
-        await user.sendEmailVerification();
-        alert("Registration successful! Please check your email for OTP verification.");
-      } catch (error) {
-        alert(error.message);
+      } else {
+        await db.collection("users").doc(user.uid).set({ email });
       }
-    });
-  </script>
+
+      // send email verification (Firebase default link)
+      await user.sendEmailVerification();
+      alert("Registration successful! Please check your email for the verification link.");
+      // optionally redirect to login
+      window.location.href = "login.html";
+    } catch (err) {
+      alert(err.message || "Registration error");
+      registerBtn.disabled = false;
+      registerBtn.textContent = "Register";
+    }
+  });
+
+  // initialize UI (in case fields are pre-filled)
+  updatePasswordUI();
+  updatePasswordMatchUI();
+  updateRegisterButton();
+});
+</script>
 
 </body>
 </html>
