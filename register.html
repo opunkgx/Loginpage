@@ -21,12 +21,14 @@
     .card { background:#fff; padding:28px; width:380px; border-radius:14px; box-shadow:0 10px 30px rgba(2,6,23,0.08); margin:80px auto; }
     .field { width:100%; padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:14px; }
     .row { display:flex; gap:8px; }
-    button { border-radius:10px; padding:10px 12px; font-weight:600; }
+    button { border-radius:10px; padding:10px 12px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; }
     button:disabled { background:#9ca3af !important; cursor:not-allowed; }
     .small { font-size:12px; color:#6b7280; }
     .error { color:#ef4444; font-size:13px; margin-top:6px; }
     #passwordProgress { height:6px; border-radius:6px; background:#e5e7eb; overflow:hidden; margin-top:6px; }
     #passwordProgressFill { width:0%; height:100%; transition:width .25s, background .25s; }
+    .toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:14px; color:#6b7280; }
+    .input-group { position:relative; }
   </style>
 </head>
 <body>
@@ -39,19 +41,21 @@
         <input id="email" class="field" type="email" placeholder="Email" required />
       </div>
 
-      <div class="mb-3">
+      <div class="mb-3 input-group">
         <input id="password" class="field" type="password" placeholder="Password (min 8 characters)" minlength="8" required />
+        <span class="toggle" onclick="togglePassword('password', this)">👁️</span>
         <div id="passwordProgress"><div id="passwordProgressFill"></div></div>
         <p id="passwordStrength" class="small mt-1"></p>
       </div>
 
-      <div class="mb-3">
+      <div class="mb-3 input-group">
         <input id="confirmPassword" class="field" type="password" placeholder="Confirm Password" required />
+        <span class="toggle" onclick="togglePassword('confirmPassword', this)">👁️</span>
         <p id="passwordError" class="error hidden">Passwords do not match.</p>
       </div>
 
       <div class="mb-3 row">
-        <select id="countryCode" class="field" style="width:120px;">
+        <select id="countryCode" class="field" style="width:120px; font-size:14px;">
           <option value="+62">🇮🇩 +62</option>
           <option value="+60">🇲🇾 +60</option>
           <option value="+91">🇮🇳 +91</option>
@@ -61,7 +65,10 @@
       </div>
 
       <div class="mb-3">
-        <button id="registerBtn" type="submit" class="w-full bg-blue-600 text-white" disabled>Register</button>
+        <button id="registerBtn" type="submit" class="w-full bg-blue-600 text-white" disabled>
+          <span id="btnText">Register</span>
+          <span id="btnSpinner" class="hidden animate-spin">⏳</span>
+        </button>
       </div>
     </form>
 
@@ -69,6 +76,17 @@
   </div>
 
 <script>
+function togglePassword(id, el) {
+  const input = document.getElementById(id);
+  if (input.type === "password") {
+    input.type = "text";
+    el.textContent = "🙈";
+  } else {
+    input.type = "password";
+    el.textContent = "👁️";
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   // Firebase config
   const firebaseConfig = {
@@ -92,6 +110,8 @@ document.addEventListener("DOMContentLoaded", function() {
   const passwordError = document.getElementById("passwordError");
   const passwordStrength = document.getElementById("passwordStrength");
   const passwordProgressFill = document.getElementById("passwordProgressFill");
+  const btnText = document.getElementById("btnText");
+  const btnSpinner = document.getElementById("btnSpinner");
 
   // validation
   function isEmailValid() { return emailEl.checkValidity(); }
@@ -160,7 +180,8 @@ document.addEventListener("DOMContentLoaded", function() {
     if (!isEmailValid() || !isPasswordValid() || !passwordsMatch()) return;
 
     registerBtn.disabled = true;
-    registerBtn.textContent = "Registering...";
+    btnText.textContent = "Registering...";
+    btnSpinner.classList.remove("hidden");
 
     const email = emailEl.value.trim();
     const password = pwdEl.value;
@@ -172,13 +193,10 @@ document.addEventListener("DOMContentLoaded", function() {
       const userCredential = await auth.createUserWithEmailAndPassword(email, password);
       const user = userCredential.user;
 
-      if (fullPhone) {
-        await db.collection("users").doc(user.uid).set({ email, phone: fullPhone });
-      } else {
-        await db.collection("users").doc(user.uid).set({ email });
-      }
+      // simpan user ke firestore
+      await db.collection("users").doc(user.uid).set({ email, phone: fullPhone });
 
-      // kirim email verifikasi di background (tidak ditunggu lama)
+      // kirim email verifikasi (background, tidak menunggu)
       user.sendEmailVerification();
 
       Swal.fire({
@@ -198,7 +216,8 @@ document.addEventListener("DOMContentLoaded", function() {
         text: err.message || "Terjadi error saat registrasi"
       });
       registerBtn.disabled = false;
-      registerBtn.textContent = "Register";
+      btnText.textContent = "Register";
+      btnSpinner.classList.add("hidden");
     }
   });
 
