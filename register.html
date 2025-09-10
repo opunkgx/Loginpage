@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Register - SweetAlert</title>
+  <title>Register</title>
 
   <!-- Tailwind -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -21,14 +21,12 @@
     .card { background:#fff; padding:28px; width:380px; border-radius:14px; box-shadow:0 10px 30px rgba(2,6,23,0.08); margin:80px auto; }
     .field { width:100%; padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:14px; }
     .row { display:flex; gap:8px; }
-    .toggle-password { position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; }
-    .pw-wrap { position:relative; }
-    #passwordProgress { height:6px; border-radius:6px; background:#e5e7eb; overflow:hidden; margin-top:6px; }
-    #passwordProgressFill { width:0%; height:100%; transition:width .24s ease, background .24s ease; }
     button { border-radius:10px; padding:10px 12px; font-weight:600; }
     button:disabled { background:#9ca3af !important; cursor:not-allowed; }
     .small { font-size:12px; color:#6b7280; }
     .error { color:#ef4444; font-size:13px; margin-top:6px; }
+    #passwordProgress { height:6px; border-radius:6px; background:#e5e7eb; overflow:hidden; margin-top:6px; }
+    #passwordProgressFill { width:0%; height:100%; transition:width .25s, background .25s; }
   </style>
 </head>
 <body>
@@ -42,19 +40,13 @@
       </div>
 
       <div class="mb-3">
-        <div class="pw-wrap">
-          <input id="password" class="field" type="password" placeholder="Password (min 8 characters)" minlength="8" required />
-          <span class="toggle-password" id="togglePwd1">👁</span>
-        </div>
+        <input id="password" class="field" type="password" placeholder="Password (min 8 characters)" minlength="8" required />
         <div id="passwordProgress"><div id="passwordProgressFill"></div></div>
         <p id="passwordStrength" class="small mt-1"></p>
       </div>
 
       <div class="mb-3">
-        <div class="pw-wrap">
-          <input id="confirmPassword" class="field" type="password" placeholder="Confirm Password" required />
-          <span class="toggle-password" id="togglePwd2">👁</span>
-        </div>
+        <input id="confirmPassword" class="field" type="password" placeholder="Confirm Password" required />
         <p id="passwordError" class="error hidden">Passwords do not match.</p>
       </div>
 
@@ -100,19 +92,24 @@ document.addEventListener("DOMContentLoaded", function() {
   const passwordError = document.getElementById("passwordError");
   const passwordStrength = document.getElementById("passwordStrength");
   const passwordProgressFill = document.getElementById("passwordProgressFill");
-  const togglePwd1 = document.getElementById("togglePwd1");
-  const togglePwd2 = document.getElementById("togglePwd2");
 
-  // helpers
+  // validation
   function isEmailValid() { return emailEl.checkValidity(); }
   function isPasswordValid() { return pwdEl.value.length >= 8; }
   function passwordsMatch() { return pwdEl.value === confirmEl.value && confirmEl.value.length > 0; }
 
   function updateRegisterButton() {
-    const ok = isEmailValid() && isPasswordValid() && passwordsMatch();
-    registerBtn.disabled = !ok;
+    registerBtn.disabled = !(isEmailValid() && isPasswordValid() && passwordsMatch());
   }
-
+  function updatePasswordMatchUI() {
+    if (!confirmEl.value) {
+      passwordError.classList.add("hidden");
+    } else if (pwdEl.value !== confirmEl.value) {
+      passwordError.classList.remove("hidden");
+    } else {
+      passwordError.classList.add("hidden");
+    }
+  }
   function evaluateStrength(pw) {
     let s=0;
     if (pw.length >= 8) s++;
@@ -151,27 +148,10 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  function updatePasswordMatchUI() {
-    if (!confirmEl.value) {
-      passwordError.classList.add("hidden");
-    } else if (pwdEl.value !== confirmEl.value) {
-      passwordError.classList.remove("hidden");
-    } else {
-      passwordError.classList.add("hidden");
-    }
-  }
-
-  // event listeners
+  // event
   emailEl.addEventListener("input", updateRegisterButton);
   pwdEl.addEventListener("input", () => { updatePasswordUI(); updatePasswordMatchUI(); updateRegisterButton(); });
   confirmEl.addEventListener("input", () => { updatePasswordMatchUI(); updateRegisterButton(); });
-
-  togglePwd1.addEventListener("click", () => {
-    pwdEl.type = pwdEl.type === "password" ? "text" : "password";
-  });
-  togglePwd2.addEventListener("click", () => {
-    confirmEl.type = confirmEl.type === "password" ? "text" : "password";
-  });
 
   // submit
   const form = document.getElementById("registerForm");
@@ -191,18 +171,22 @@ document.addEventListener("DOMContentLoaded", function() {
     try {
       const userCredential = await auth.createUserWithEmailAndPassword(email, password);
       const user = userCredential.user;
+
       if (fullPhone) {
         await db.collection("users").doc(user.uid).set({ email, phone: fullPhone });
       } else {
         await db.collection("users").doc(user.uid).set({ email });
       }
+
+      // kirim email verifikasi di background (tidak ditunggu lama)
       user.sendEmailVerification();
 
       Swal.fire({
         icon: 'success',
         title: 'Registrasi Berhasil',
-        text: 'Silahkan login menggunakan akun anda',
-        confirmButtonText: 'OK'
+        text: 'Silahkan login dengan akun anda',
+        timer: 2000,
+        showConfirmButton: false
       }).then(() => {
         window.location.href = "login.html";
       });
